@@ -1,37 +1,66 @@
----
+# Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
- name: mavenwebappdeployment
+  name: mavenwebappdeployment
+  namespace: default
 spec:
- replicas: 2
- strategy: 
+  replicas: 2
+  strategy:
     type: Recreate
- selector: 
-   matchLabels: 
-     app: mavenwebapp
- template:
-  metadata:
-   name: mavenwebapppod
-   labels:
-     app: mavenwebapp	 
-  spec: 
-    containers:
-    - name: mavenwebappcontainer
-      image: rajsamunder/mavenwebapp:latest
-      imagePullPolicy: Always
-      ports:
-      - containerPort: 8080
+  selector:
+    matchLabels:
+      app: mavenwebapp
+  template:
+    metadata:
+      labels:
+        app: mavenwebapp
+    spec:
+      containers:
+        - name: mavenwebappcontainer
+          image: rajsamunder/mavenwebapp:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+
 ---
+
+# Service
 apiVersion: v1
 kind: Service
 metadata:
- name: mavenwebappsvc
+  name: mavenwebappsvc
+  namespace: default
 spec:
-  type: LoadBalancer
+  type: ClusterIP      # <-- changed from LoadBalancer
   selector:
-   app: mavenwebapp
+    app: mavenwebapp
   ports:
-   - port: 80
-     targetPort: 8080
-...
+    - port: 80
+      targetPort: 8080
+
+---
+
+# Ingress (ALB)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mavenwebapp-ingress
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+    alb.ingress.kubernetes.io/target-type: ip
+spec:
+  rules:
+    - host: demo.paytm.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mavenwebappsvc   # <-- must match Service name
+                port:
+                  number: 80
