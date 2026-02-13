@@ -1,7 +1,5 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
-apiVersion: networking.k8s.io/v1
-kind: Ingress
 metadata:
   name: mavenwebapp-ingress
   namespace: default
@@ -12,13 +10,13 @@ metadata:
     alb.ingress.kubernetes.io/target-type: ip
 spec:
   rules:
-    - host: demo.paytm.com
+    - # host: demo.paytm.com   <-- comment out for testing
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: mavenwebappsvc   # match the Service name
+                name: mavenwebappsvc
                 port:
                   number: 80
