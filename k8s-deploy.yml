@@ -29,7 +29,7 @@ metadata:
   name: mavenwebappsvc
   namespace: default
 spec:
-  type: LoadBalancer      # <-- quick test for public access
+  type: LoadBalancer      # <-- allows public access
   selector:
     app: mavenwebapp
   ports:
@@ -51,7 +51,7 @@ metadata:
     alb.ingress.kubernetes.io/target-type: ip
 spec:
   rules:
-    - # host: demo.paytm.com   <-- comment out for testing
+    - host: demo.paytm.com   <-- commented out for quick testing
       http:
         paths:
           - path: /
