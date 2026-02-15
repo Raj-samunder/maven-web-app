@@ -16,7 +16,7 @@ pipeline {
             steps {
                 git(
                     url: 'https://github.com/Raj-samunder/maven-web-app.git',
-                    credentialsId: 'github-creds'
+                    credentialsId: 'github_creds'
                 )
             }
         }
@@ -31,7 +31,7 @@ pipeline {
             steps {
                 // Login to Docker Hub using credentials
                 withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-creds',
+                    credentialsId: 'docker_creds',
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
