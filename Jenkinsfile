@@ -1,29 +1,63 @@
 pipeline {
     agent any
-    
-    tools{
-        maven 'Maven-3.9.9'
+
+    tools {
+        maven 'Maven-3.9.12'   // Make sure this matches your Jenkins tool name
     }
+
+    environment {
+        IMAGE_NAME = 'rajsamunder/mavenwebapp'
+        IMAGE_TAG  = 'latest'
+    }
+
     stages {
-        stage('clone') {
+
+        stage('Clone GitHub Repo') {
             steps {
-              git 'https://github.com/ashokitschool/maven-web-app.git'
+                git(
+                    url: 'https://github.com/Raj-samunder/maven-web-app.git',
+                    credentialsId: 'github-creds'
+                )
             }
         }
-        stage('build'){
-            steps{
-                 sh 'mvn clean package'
-            }
-        }
-        stage('docker image'){
+
+        stage('Build with Maven') {
             steps {
-                sh 'docker build -t ashokit/mavenwebapp .'
+                sh 'mvn clean package'
             }
         }
-        stage('k8s deploy'){
-            steps{
-               sh 'kubectl apply -f k8s-deploy.yml'
+
+        stage('Docker Build & Push') {
+            steps {
+                // Login to Docker Hub using credentials
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                }
+
+                // Build Docker image
+                sh "docker build -t $IMAGE_NAME:$IMAGE_TAG ."
+
+                // Push Docker image to Docker Hub
+                sh "docker push $IMAGE_NAME:$IMAGE_TAG"
             }
+        }
+
+        stage('K8s Deploy') {
+            steps {
+                // Make sure kubeconfig is configured for ubuntu user
+                sh 'kubectl apply -f k8s-deploy.yml'
+            }
+        }
+
+    }
+
+    post {
+        always {
+            cleanWs()  // Clean workspace after pipeline
         }
     }
 }
