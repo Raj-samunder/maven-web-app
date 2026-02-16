@@ -49,7 +49,7 @@ pipeline {
         stage('K8s Deploy') {
             steps {
                 // Make sure kubeconfig is configured for ubuntu user
-                sh 'kubectl apply -f k8s-deploy.yml'
+                sh 'kubectl apply -f .'
             }
         }
 
